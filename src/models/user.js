@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 const validator = require('validator')
+const jwt = require('jsonwebtoken')
 
 const userSchema = mongoose.Schema({
     name : {
@@ -33,16 +34,33 @@ const userSchema = mongoose.Schema({
     }]
 })
 
+userSchema.methods.toJSON = function() {
+    const user = this
+    const userObject = user.toObject()
+    delete userObject.password
+    delete userObject.tokens
+    return userObject
+}
+
+userSchema.methods.generateAuthToken = async function(){
+    const user = this
+    const token = jwt.sign({_id : user._id.toString()}, process.env.SECRET)
+    user.tokens = user.tokens.concat({token})
+    await user.save()
+    return token
+}
+
 userSchema.statics.findByCreds = async(email, password) => {
     const user = await User.findOne({email})
     if(!user)
-        throw Error('unable to login')
+        throw Error('unable to login:wrong email')
     const isMatch = await bcrypt.compare(password, user.password)
     if(!isMatch)
-        return user
+        throw Error('unable to login:wrong password')    
     else
-        throw Error('unable to login')    
+        return user
 }
+
 
 userSchema.pre('save', async function(next) {
     const user = this
