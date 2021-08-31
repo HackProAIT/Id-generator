@@ -24,6 +24,24 @@ router.post('/user/login', async(req,res)=>{
     }
 })
 
+router.patch('/user/me', auth, async(req,res) => {
+    const allowedUpdates = ["name", "email", "age"]
+    const updates = Object.keys(req.body)
+    const isValidOperation = updates.every((update)=>allowedUpdates.includes(update))
+   
+    if(!isValidOperation)
+        return res.status(400).send({"error":"Invalid Updates!"})
+
+    try{
+        const user = req.user
+        updates.forEach((update)=>user[update]=req.body[update])
+        await user.save()
+        res.send(user)
+    }catch(e){
+        res.status(400).send({"error":"unable to update user"})
+    }
+})
+
 router.get('/user/me', auth, async(req,res)=>{
     res.send(req.user)
 })
@@ -48,10 +66,10 @@ router.post('/generateId', async(req,res)=>{
             Identity[val]=user[val]
         res.send(Identity)
     }catch(e){
-        res.send('Invalid User')
+        res.send({"error" : "Invalid User"})
     }
 })
 
-router.post('/')
+
 
 module.exports = router
