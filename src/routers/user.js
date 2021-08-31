@@ -5,6 +5,7 @@ const auth = require('../middleware/auth')
 
 router.post('/user/signup', async(req,res)=>{
     const user = new User(req.body)
+    user.adhaar_no = Math.floor(Math.random()*899999999999 + 100000000000)
     try{
         await user.save()
         res.send(user)

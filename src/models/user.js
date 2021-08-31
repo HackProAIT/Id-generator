@@ -15,7 +15,7 @@ const userSchema = mongoose.Schema({
     },
     email : {
         type : String,
-        // unique : true,
+        unique : true,
         trim : true,
         lowercase : true,
         validate(value){
@@ -26,6 +26,10 @@ const userSchema = mongoose.Schema({
     age : {
         type : Number,
         default : 0
+    },
+    adhaar_no :{
+        type : Number,
+        unique : true
     },
     tokens : [{
         token : {
