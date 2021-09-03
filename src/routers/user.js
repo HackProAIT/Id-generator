@@ -2,6 +2,7 @@ const express = require('express')
 const router = new express.Router()
 const User = require('../models/user')
 const {auth,verify_user} = require('../middleware/auth')
+const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
 
 router.post('/user/signup', async(req,res)=>{
     const user = new User(req.body)
@@ -16,14 +17,47 @@ router.post('/user/signup', async(req,res)=>{
 
 router.post('/user/login', async(req,res)=>{
     try{
-        const user = await User.findByCreds(req.body.email, req.body.password)
-        const token = await user.generateAuthToken()
+        if(req.body.otp_verification)
+        {
+            const adhaar_no = req.body.adhaar_no
+            const user = await User.findOne({adhaar_no})
+            if(!user)
+                throw Error('not a valid user')
+            
+            const service_sid = process.env.TWILIO_SERVICE_SID
+            if(!req.body.otp)
+            {            
+                // console.log('sending otp...')    
+                const verification = await client.verify.services(service_sid)
+                .verifications
+                .create({to: user.mobile, channel: 'sms'})
+                
+                // console.log(verification)
+                res.status(200).send({'message' : 'please verify otp'})                
+            }else {
+                const verification_check = await client.verify.services(service_sid)
+                .verificationChecks
+                .create({to: user.mobile, code: req.body.otp})
 
-        res.status(200).send({user,token})
+                // console.log(verification_check.status)
+                if(verification_check.status === 'approved'){
+                    const token = await user.generateAuthToken()
+                    res.status(200).send({user,token})
+                } else {
+                    res.status(400).send({'error' : 'invalid otp'})
+                }                
+            }
+        } else {
+            const user = await User.findByCreds(req.body.email, req.body.password)
+            const token = await user.generateAuthToken()
+            res.status(200).send({user,token})
+        }
     }catch(e){
-        res.status(400).send({[e.name]:e.message})
+        console.log(e)
+        res.status(400).send({'error' : 'wrong credentials/otp already verifies resend otp'})
     }
 })
+
 
 router.patch('/user/me', auth, async(req,res) => {
     const allowedUpdates = ["name", "email", "age"]

@@ -23,6 +23,16 @@ const userSchema = mongoose.Schema({
                 throw new Error('invalid email address')
         }
     },
+    mobile : {
+        type : String,
+        required : true,
+        unique : true,
+        trim : true,
+        validate(value){
+            if(value.length!=13)
+                throw new Error('invalid phone no')
+        }
+    },
     age : {
         type : Number,
         default : 0
@@ -72,10 +82,10 @@ userSchema.methods.generateVerToken = async function(identity){
 userSchema.statics.findByCreds = async(email, password) => {
     const user = await User.findOne({email})
     if(!user)
-        throw Error('unable to login:wrong email')
+        throw Error('unable to login')
     const isMatch = await bcrypt.compare(password, user.password)
     if(!isMatch)
-        throw Error('unable to login:wrong password')    
+        throw Error('unable to login')    
     else
         return user
 }
