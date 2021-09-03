@@ -1,7 +1,7 @@
 const express = require('express')
 const router = new express.Router()
 const User = require('../models/user')
-const auth = require('../middleware/auth')
+const {auth,verify_user} = require('../middleware/auth')
 
 router.post('/user/signup', async(req,res)=>{
     const user = new User(req.body)
@@ -59,16 +59,22 @@ router.post('/user/logout', auth, async(req,res)=>{
     }
 })
 
-router.post('/generateId', async(req,res)=>{    
+router.post('/user/generateId', auth, async(req,res)=>{    
     try{
-        const user = await User.findById(req.body.id)
-        const Identity={}
+        const user = req.user
+        const identity={}
         for(val in req.body)
-            Identity[val]=user[val]
-        res.send(Identity)
+            identity[val]=user[val]
+        const token = await user.generateVerToken(identity)
+        res.send(token)
     }catch(e){
         res.send({"error" : "Invalid User"})
     }
+})
+
+router.get('/user/verify/:id', async(req,res)=>{
+    const token = req.params.id
+    res.send(verify_user(token))
 })
 
 

@@ -13,8 +13,18 @@ const auth = async(req,res,next) =>{
         next()
     }
     catch(e){
-        res.status(403).send('please authenticate')
+        res.status(403).send({ 'error' : 'please authenticate'})
     }
 }
 
-module.exports = auth
+const verify_user = (token) => {
+    try{
+        jwt.verify(token,process.env.SECRET_VERIFY)
+        return {'message' : 'user verified'}
+    }
+    catch(e){
+        return {'error':'user not verified'}
+    }
+}
+
+module.exports = {auth,verify_user}
