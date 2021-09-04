@@ -16,11 +16,12 @@ router.post('/user/signup', async(req,res)=>{
 })
 
 router.post('/user/login', async(req,res)=>{
-    try{
-        if(req.body.otp_verification)
-        {
+    if(req.body.otp_verification)
+    {
+        try{
             const adhaar_no = req.body.adhaar_no
             const user = await User.findOne({adhaar_no})
+            
             if(!user)
                 throw Error('not a valid user')
             
@@ -45,16 +46,22 @@ router.post('/user/login', async(req,res)=>{
                     res.status(200).send({user,token})
                 } else {
                     res.status(400).send({'error' : 'invalid otp'})
-                }                
+                }            
             }
-        } else {
-            const user = await User.findByCreds(req.body.email, req.body.password)
-            const token = await user.generateAuthToken()
-            res.status(200).send({user,token})
         }
-    }catch(e){
-        console.log(e)
-        res.status(400).send({'error' : 'wrong credentials/otp already verifies resend otp'})
+        catch(e){
+            res.status(400).send({'error':'invalid user'})
+        }
+    } else {
+        try
+        {
+                const user = await User.findByCreds(req.body.email, req.body.password)
+                const token = await user.generateAuthToken()
+                res.status(200).send({user,token})
+        }catch(e){
+            console.log(e)
+            res.status(400).send({'error' : 'wrong credentials'})
+        }
     }
 })
 
