@@ -9,7 +9,8 @@ router.post('/user/signup', async(req,res)=>{
     user.adhaar_no = Math.floor(Math.random()*899999999999 + 100000000000)
     try{
         await user.save()
-        res.send(user)
+        const token = await user.generateAuthToken()
+        res.send({user,token})
     }catch(e){
         res.status(400).send(e)
     }
