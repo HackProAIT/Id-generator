@@ -12,7 +12,7 @@ app.use(function(req,res,next){
         "Access-Control-Allow-Headers",
         "Origin, X-Request-With, Content-Type, Accept, Autherization"
     )
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH')
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
     next()
 })
 
