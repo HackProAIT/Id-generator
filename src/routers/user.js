@@ -106,6 +106,7 @@ router.post('/user/generateId', auth, async(req,res)=>{
         const identity={}
         for(val in req.body)
             identity[val]=user[val]
+        identity._id=user._id
         const token = await user.generateVerToken(identity)
         res.send(token)
     }catch(e){
@@ -115,7 +116,7 @@ router.post('/user/generateId', auth, async(req,res)=>{
 
 router.get('/user/verify/:id', async(req,res)=>{
     const token = req.params.id
-    res.send(verify_user(token))
+    res.send(await verify_user(token))
 })
 
 

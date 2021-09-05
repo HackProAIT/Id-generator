@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 
-const auth = async(req,res,next) =>{
+const auth = async (req,res,next) =>{
     try{
         const token = req.header('Authorization').replace('Bearer ','')
         const decoded = jwt.verify(token,process.env.SECRET)
@@ -17,9 +17,13 @@ const auth = async(req,res,next) =>{
     }
 }
 
-const verify_user = (token) => {
+const verify_user = async (token) => {
     try{
-        jwt.verify(token,process.env.SECRET_VERIFY)
+        const decoded = jwt.verify(token,process.env.SECRET_VERIFY)
+        const user = await User.findOne({_id : decoded._id, 'ver_tokens.token':token})
+        
+        if(!user)
+            throw new Error('not verified')
         return {'message' : 'user verified'}
     }
     catch(e){
